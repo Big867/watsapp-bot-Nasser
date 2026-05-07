@@ -2,11 +2,14 @@
   "name": "wa-savage-bot",
   "version": "1.0.0",
   "main": "index.js",
-  "scripts": {
-    "start": "node index.js"
-  },
   "dependencies": {
     "whatsapp-web.js": "latest",
     "qrcode-terminal": "latest"
+  },
+  "scripts": {
+    "start": "node index.js"
+  },
+  "engines": {
+    "node": "18.x"
   }
 }
