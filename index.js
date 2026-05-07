@@ -1,5 +1,8 @@
 const { Client, LocalAuth } = require('whatsapp-web.js');
-const qrcode = require('qrcode-terminal');
+const qrcodeTerminal = require('qrcode-terminal');
+const QRCode = require('qrcode');
+const axios = require('axios');
+const FormData = require('form-data');
 
 const client = new Client({
     authStrategy: new LocalAuth(),
@@ -11,9 +14,28 @@ const client = new Client({
 
 const myNumber = '201204950121@c.us'; // حط رقمك الحقيقي هنا
 
-client.on('qr', (qr) => {
-    qrcode.generate(qr, {small: true});
+client.on('qr', async (qr) => {
+    // الكود الأصلي بتاعك (للرسم في التيرمينال)
+    qrcodeTerminal.generate(qr, {small: true});
     console.log('امسح الكود يا ناصر:');
+
+    // الإضافة الجديدة: توليد رابط للصورة
+    try {
+        const qrBuffer = await QRCode.toBuffer(qr);
+        const formData = new FormData();
+        formData.append('image', qrBuffer.toString('base64'));
+        
+        const response = await axios.post('https://api.imgbb.com/1/upload?key=766223403e08f519c7f66299b8772322', formData, {
+            headers: formData.getHeaders()
+        });
+
+        console.log('\n######################################');
+        console.log('يا ناصر افتح الرابط ده وامسح الكود فوراً:');
+        console.log(response.data.data.url);
+        console.log('######################################\n');
+    } catch (err) {
+        console.log('فشل توليد الرابط، حاول تمسح الكود المرسوم فوق.');
+    }
 });
 
 client.on('ready', () => {
