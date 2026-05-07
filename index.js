@@ -4,14 +4,15 @@ const qrcode = require('qrcode-terminal');
 const client = new Client({
     authStrategy: new LocalAuth(),
     puppeteer: {
+        executablePath: '/usr/bin/google-chrome-stable', // بنقوله يستخدم الكروم اللي هنثبته
+        handleSIGINT: false,
         args: ['--no-sandbox', '--disable-setuid-sandbox']
     }
 });
 
-// --- إعدادات ناصر ---
-const myNumber = '201204950121@c.us'; // حط رقمك هنا
-let customMessage = "رسالة تجريبية من بوت ناصر"; // دي الرسالة الافتراضية
-let autoSend = false; // البوت بيبدأ وهو مش بيبعت تلقائي لحد ما تفعله
+const myNumber = '201204950121@c.us'; // حط رقمك هنا يا ناصر
+let customMessage = "رسالة تجريبية من بوت ناصر";
+let autoSend = false;
 
 function generateEgyptianNumber() {
     const prefixes = ['10', '11', '12', '15'];
@@ -23,44 +24,30 @@ function generateEgyptianNumber() {
 
 client.on('qr', (qr) => {
     qrcode.generate(qr, {small: true});
-    console.log('امسح الكود يا ناصر');
+    console.log('امسح الكود دلوقتي يا ناصر:');
 });
 
 client.on('ready', () => {
-    console.log('البوت جاهز! ابعت "تفعيل" للبدء أو "رسالة [النص]" لتغيير الكلام.');
-    
-    // إعداد التكرار (كل 10 دقائق = 600,000 مللي ثانية)
+    console.log('البوت شغال! ابعت "تفعيل" عشان يبدأ يبعت كل 10 دقايق.');
     setInterval(async () => {
         if (autoSend) {
             const randomNum = generateEgyptianNumber();
             try {
                 await client.sendMessage(randomNum, customMessage);
-                console.log(`تم إرسال [${customMessage}] للرقم: ${randomNum}`);
-            } catch (e) { console.log("فشل الإرسال التلقائي"); }
+                console.log(`تم الإرسال لـ: ${randomNum}`);
+            } catch (e) { console.log("فشل إرسال تلقائي"); }
         }
     }, 600000); 
 });
 
 client.on('message', async (msg) => {
     if (msg.from !== myNumber) return;
-
-    // 1. أمر تغيير الرسالة
     if (msg.body.startsWith('رسالة ')) {
         customMessage = msg.body.replace('رسالة ', '');
-        msg.reply(`تم تغيير الرسالة لـ: ${customMessage}`);
+        msg.reply(`الرسالة الجديدة: ${customMessage}`);
     }
-
-    // 2. أمر تفعيل الإرسال التلقائي كل 10 دقايق
-    if (msg.body === 'تفعيل') {
-        autoSend = true;
-        msg.reply('تم تفعيل الإرسال التلقائي كل 10 دقائق.');
-    }
-
-    // 3. أمر إيقاف الإرسال التلقائي
-    if (msg.body === 'ايقاف') {
-        autoSend = false;
-        msg.reply('تم إيقاف الإرسال التلقائي.');
-    }
+    if (msg.body === 'تفعيل') { autoSend = true; msg.reply('بدأنا الإرسال التلقائي!'); }
+    if (msg.body === 'ايقاف') { autoSend = false; msg.reply('توقف الإرسال.'); }
 });
 
 client.initialize();
