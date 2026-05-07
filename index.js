@@ -5,62 +5,33 @@ const client = new Client({
     authStrategy: new LocalAuth(),
     puppeteer: {
         handleSIGINT: false,
-        args: ['--no-sandbox', '--disable-setuid-sandbox']
+        args: [
+            '--no-sandbox',
+            '--disable-setuid-sandbox',
+            '--disable-dev-shm-usage',
+            '--no-zygote'
+        ],
     }
 });
 
-// --- حط رقمك هنا عشان البوت يسمع كلامك أنت بس ---
-const myNumber = '201204950121@c.us'; // استبدل الرقم ده برقمك أنت
-
-function generateEgyptianNumber() {
-    const prefixes = ['10', '11', '12', '15'];
-    const prefix = prefixes[Math.floor(Math.random() * prefixes.length)];
-    let body = '';
-    for (let i = 0; i < 8; i++) {
-        body += Math.floor(Math.random() * 10);
-    }
-    return `20${prefix}${body}@c.us`;
-}
+// رقمك هنا (تأكد من تعديله)
+const myNumber = '201204950121@c.us'; 
 
 client.on('qr', (qr) => {
-    console.log('امسح الكود ده فوراً:');
+    console.log('امسح الكود ده يا ناصر:');
     qrcode.generate(qr, {small: true});
 });
 
 client.on('ready', () => {
-    console.log('البوت شغال وجاهز لأوامر ناصر فقط!');
+    console.log('مبروك يا بطل.. البوت شغال!');
 });
 
 client.on('message', async (msg) => {
-    
-    // التأكد إن اللي بيبعت هو أنت
     if (msg.from !== myNumber) return;
 
-    // 1. أمر الإرسال العشوائي
     if (msg.body === 'عشوائي') {
-        const randomNum = generateEgyptianNumber();
-        const text = "رسالة تجريبية عشوائية من بوت ناصر.";
-        try {
-            await client.sendMessage(randomNum, text);
-            msg.reply(`تم الإرسال للرقم العشوائي: ${randomNum}`);
-        } catch (err) {
-            msg.reply('فشل الإرسال للعشوائي.');
-        }
-    }
-
-    // 2. أمر الإرسال لرقم معين
-    // الصيغة: ارسل 201xxxxxxxxx النص
-    if (msg.body.startsWith('ارسل ')) {
-        const parts = msg.body.split(' ');
-        const targetNum = parts[1] + '@c.us';
-        const messageText = parts.slice(2).join(' ');
-
-        try {
-            await client.sendMessage(targetNum, messageText);
-            msg.reply(`تم الإرسال لـ ${targetNum}`);
-        } catch (err) {
-            msg.reply('خطأ في الرقم أو الرسالة.');
-        }
+        msg.reply('جاري الإرسال لرقم عشوائي...');
+        // هنا ممكن تضيف دالة الرقم العشوائي اللي عملناها قبل كدة
     }
 });
 
