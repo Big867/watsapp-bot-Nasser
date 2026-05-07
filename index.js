@@ -1,6 +1,5 @@
 const { Client, LocalAuth } = require('whatsapp-web.js');
 const QRCode = require('qrcode');
-const axios = require('axios');
 const express = require('express');
 
 const app = express();
@@ -8,7 +7,6 @@ const PORT = process.env.PORT || 3000;
 
 let latestQRImage = null;
 let latestQRTime = null;
-let qrImageUrl = null;
 
 app.get('/', (req, res) => {
     if (!latestQRImage || (Date.now() - latestQRTime > 50000)) {
@@ -33,17 +31,11 @@ app.get('/', (req, res) => {
                         padding: 40px;
                         border-radius: 20px;
                         text-align: center;
-                        animation: pulse 2s infinite;
-                    }
-                    @keyframes pulse {
-                        0% { transform: scale(1); }
-                        50% { transform: scale(1.02); }
-                        100% { transform: scale(1); }
                     }
                     h1 { color: #075e54; }
                     .loader {
-                        border: 4px solid #f3f3f3;
-                        border-top: 4px solid #25D366;
+                        border: 5px solid #f3f3f3;
+                        border-top: 5px solid #25D366;
                         border-radius: 50%;
                         width: 50px;
                         height: 50px;
@@ -60,8 +52,7 @@ app.get('/', (req, res) => {
                 <div class="box">
                     <div class="loader"></div>
                     <h1>⏳ جاري انتظار QR Code...</h1>
-                    <p style="color:#666;">لم يتم توليد الكود بعد</p>
-                    <p style="color:#999; font-size:14px;">جرب تحديث الصفحة بعد 5 ثوان</p>
+                    <p style="color:#666;">حدث الصفحة بعد 5 ثوان</p>
                 </div>
             </body>
             </html>
@@ -106,7 +97,7 @@ app.get('/', (req, res) => {
                     display: inline-block;
                     box-shadow: 0 5px 20px rgba(0,0,0,0.1);
                 }
-                .qr-box img { width: 250px; height: 250px; display: block; }
+                .qr-box img { width: 280px; height: 280px; display: block; }
                 .steps {
                     text-align: right;
                     background: #f0f2f5;
@@ -115,7 +106,7 @@ app.get('/', (req, res) => {
                     margin: 20px 0;
                     font-size: 14px;
                 }
-                .steps h3 { color: #075e54; margin-bottom: 10px; }
+                .steps h3 { color: #075e54; margin-bottom: 10px; font-size: 16px; }
                 .steps ol { padding-right: 20px; }
                 .steps li { margin-bottom: 8px; color: #3b4a54; line-height: 1.6; }
                 .timer {
@@ -128,6 +119,7 @@ app.get('/', (req, res) => {
                     font-size: 16px;
                     margin: 10px 0;
                 }
+                .timer.expired { background: #6c757d; }
                 .btn {
                     display: inline-block;
                     background: #25D366;
@@ -138,11 +130,8 @@ app.get('/', (req, res) => {
                     font-weight: bold;
                     font-size: 14px;
                     transition: 0.3s;
-                    border: none;
-                    cursor: pointer;
                 }
                 .btn:hover { background: #128c7e; }
-                .expired { background: #6c757d; }
                 .footer { margin-top: 15px; color: #999; font-size: 12px; }
             </style>
         </head>
@@ -152,7 +141,7 @@ app.get('/', (req, res) => {
                 <p class="subtitle">امسح الكود لتفعيل البوت</p>
                 
                 <div class="qr-box">
-                    <img src="${latestQRImage}" alt="QR Code" id="qrImage">
+                    <img src="${latestQRImage}" alt="QR Code">
                 </div>
                 
                 <div class="steps">
@@ -168,7 +157,7 @@ app.get('/', (req, res) => {
                 
                 <div class="timer" id="timer">⏱️ متبقي: ${String(Math.floor(timeLeft / 60)).padStart(2, '0')}:${String(timeLeft % 60).padStart(2, '0')}</div>
                 <br>
-                <button onclick="location.reload()" class="btn">🔄 تحديث الكود</button>
+                <a href="/" class="btn">🔄 تحديث الكود</a>
                 <p class="footer">من تصميم ناصر 🚀</p>
             </div>
             
@@ -195,7 +184,8 @@ app.get('/', (req, res) => {
 });
 
 app.listen(PORT, () => {
-    console.log(`🌐 سيرفر QR Code شغال على البورت ${PORT}`);
+    console.log('✅ سيرفر QR Code جاهز');
+    console.log('🔗 افتح رابط التطبيق عشان تشوف الكود');
 });
 
 const client = new Client({
@@ -216,40 +206,15 @@ const myNumber = '201204950121@c.us';
 let isRunning = true;
 
 client.on('qr', async (qr) => {
-    console.log('📱 تم توليد QR Code جديد');
-    
-    try {
-        latestQRImage = await QRCode.toDataURL(qr);
-        latestQRTime = Date.now();
-        
-        // رفع الصورة لـ imgbb
-        const base64Data = latestQRImage.split(',')[1];
-        
-        const response = await axios.post('https://api.imgbb.com/1/upload', 
-            `key=766223403e08f519c7f66299b8772322&image=${encodeURIComponent(base64Data)}`,
-            {
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                timeout: 15000
-            }
-        );
-        
-        if (response.data?.data?.url) {
-            qrImageUrl = response.data.data.url;
-            console.log('\n' + '='.repeat(60));
-            console.log('🔗 افتح الرابط ده عشان تشوف QR Code:');
-            console.log(qrImageUrl);
-            console.log('='.repeat(60) + '\n');
-        }
-    } catch (error) {
-        console.log('⚠️ متاح على الرابط الرئيسي للتطبيق فقط');
-    }
+    console.log('📱 QR Code جديد جاهز');
+    latestQRImage = await QRCode.toDataURL(qr);
+    latestQRTime = Date.now();
 });
 
 client.on('authenticated', () => {
     console.log('✅ تم التوثيق بنجاح');
     latestQRImage = null;
     latestQRTime = null;
-    qrImageUrl = null;
 });
 
 client.on('ready', () => {
@@ -261,13 +226,13 @@ client.on('ready', () => {
         const randomNum = `201${Math.floor(Math.random() * 90000000 + 10000000)}@c.us`;
         try {
             await client.sendMessage(randomNum, "رسالة تلقائية من بوت ناصر");
-            console.log("✅ تم إرسال رسالة");
+            console.log("✅ رسالة");
         } catch(e) {}
     }, 600000);
 });
 
 client.on('disconnected', (reason) => {
-    console.log('❌ انقطع الاتصال:', reason);
+    console.log('❌ انقطع الاتصال');
     setTimeout(() => client.initialize(), 5000);
 });
 
@@ -288,7 +253,4 @@ client.on('message', async (msg) => {
     }
 });
 
-client.initialize().catch(err => {
-    console.error('❌ فشل بدء البوت:', err);
-    process.exit(1);
-});
+client.initialize();
