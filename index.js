@@ -4,14 +4,18 @@ const qrcode = require('qrcode-terminal');
 const client = new Client({
     authStrategy: new LocalAuth(),
     puppeteer: {
-        executablePath: '/usr/bin/google-chrome-stable', // بنقوله يستخدم الكروم اللي هنثبته
-        handleSIGINT: false,
-        args: ['--no-sandbox', '--disable-setuid-sandbox']
+        args: [
+            '--no-sandbox',
+            '--disable-setuid-sandbox',
+            '--disable-dev-shm-usage',
+            '--no-zygote'
+        ],
     }
 });
 
-const myNumber = '201204950121@c.us'; // حط رقمك هنا يا ناصر
-let customMessage = "رسالة تجريبية من بوت ناصر";
+// --- إعداداتك يا ناصر ---
+const myNumber = '201204950121@c.us'; // حط رقمك الحقيقي هنا
+let customMessage = "رسالة من بوت ناصر"; 
 let autoSend = false;
 
 function generateEgyptianNumber() {
@@ -24,11 +28,11 @@ function generateEgyptianNumber() {
 
 client.on('qr', (qr) => {
     qrcode.generate(qr, {small: true});
-    console.log('امسح الكود دلوقتي يا ناصر:');
+    console.log('امسح الكود يا ناصر:');
 });
 
 client.on('ready', () => {
-    console.log('البوت شغال! ابعت "تفعيل" عشان يبدأ يبعت كل 10 دقايق.');
+    console.log('البوت شغال! ابعت "تفعيل" للبدء.');
     setInterval(async () => {
         if (autoSend) {
             const randomNum = generateEgyptianNumber();
@@ -44,9 +48,9 @@ client.on('message', async (msg) => {
     if (msg.from !== myNumber) return;
     if (msg.body.startsWith('رسالة ')) {
         customMessage = msg.body.replace('رسالة ', '');
-        msg.reply(`الرسالة الجديدة: ${customMessage}`);
+        msg.reply(`تم تغيير الرسالة لـ: ${customMessage}`);
     }
-    if (msg.body === 'تفعيل') { autoSend = true; msg.reply('بدأنا الإرسال التلقائي!'); }
+    if (msg.body === 'تفعيل') { autoSend = true; msg.reply('بدأ الإرسال التلقائي كل 10 دقائق.'); }
     if (msg.body === 'ايقاف') { autoSend = false; msg.reply('توقف الإرسال.'); }
 });
 
