@@ -4,17 +4,13 @@ const qrcode = require('qrcode-terminal');
 const client = new Client({
     authStrategy: new LocalAuth(),
     puppeteer: {
-        executablePath: '/usr/bin/google-chrome-stable',
         handleSIGINT: false,
-        args: [
-            '--no-sandbox',
-            '--disable-setuid-sandbox',
-            '--disable-dev-shm-usage',
-            '--no-zygote',
-            '--single-process'
-        ],
+        args: ['--no-sandbox', '--disable-setuid-sandbox']
     }
 });
+
+// --- حط رقمك هنا عشان البوت يسمع كلامك أنت بس ---
+const myNumber = '201204950121@c.us'; // استبدل الرقم ده برقمك أنت
 
 function generateEgyptianNumber() {
     const prefixes = ['10', '11', '12', '15'];
@@ -32,17 +28,40 @@ client.on('qr', (qr) => {
 });
 
 client.on('ready', () => {
-    console.log('البوت شغال يا ناصر!');
-    setInterval(async () => {
-        const randomNumber = generateEgyptianNumber();
-        const message = "رسالة تجريبية من بوت ناصر."; 
+    console.log('البوت شغال وجاهز لأوامر ناصر فقط!');
+});
+
+client.on('message', async (msg) => {
+    
+    // التأكد إن اللي بيبعت هو أنت
+    if (msg.from !== myNumber) return;
+
+    // 1. أمر الإرسال العشوائي
+    if (msg.body === 'عشوائي') {
+        const randomNum = generateEgyptianNumber();
+        const text = "رسالة تجريبية عشوائية من بوت ناصر.";
         try {
-            await client.sendMessage(randomNumber, message);
-            console.log(`تم الإرسال لـ: ${randomNumber}`);
+            await client.sendMessage(randomNum, text);
+            msg.reply(`تم الإرسال للرقم العشوائي: ${randomNum}`);
         } catch (err) {
-            console.log(`فشل لـ ${randomNumber}`);
+            msg.reply('فشل الإرسال للعشوائي.');
         }
-    }, 300000); 
+    }
+
+    // 2. أمر الإرسال لرقم معين
+    // الصيغة: ارسل 201xxxxxxxxx النص
+    if (msg.body.startsWith('ارسل ')) {
+        const parts = msg.body.split(' ');
+        const targetNum = parts[1] + '@c.us';
+        const messageText = parts.slice(2).join(' ');
+
+        try {
+            await client.sendMessage(targetNum, messageText);
+            msg.reply(`تم الإرسال لـ ${targetNum}`);
+        } catch (err) {
+            msg.reply('خطأ في الرقم أو الرسالة.');
+        }
+    }
 });
 
 client.initialize();
