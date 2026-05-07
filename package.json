@@ -3,10 +3,13 @@
   "version": "1.0.0",
   "main": "index.js",
   "dependencies": {
-    "whatsapp-web.js": "^1.23.0",
-    "qrcode-terminal": "^0.12.0"
+    "whatsapp-web.js": "latest",
+    "qrcode-terminal": "latest"
   },
   "scripts": {
     "start": "node index.js"
+  },
+  "engines": {
+    "node": "18.x"
   }
 }
