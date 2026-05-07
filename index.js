@@ -6,7 +6,7 @@ const axios = require('axios');
 const client = new Client({
     authStrategy: new LocalAuth(),
     puppeteer: {
-        // executablePath: '/usr/bin/chromium', // تم تعطيل هذا السطر ليعمل على جهازك الشخصي. إذا قمت برفعه على Railway قم بإزالة الشرطتين //
+        executablePath: '/usr/bin/chromium', 
         args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage']
     }
 });
@@ -23,7 +23,13 @@ client.on('qr', async (qr) => {
         const base64Image = qrBuffer.toString('base64');
         const params = new URLSearchParams();
         params.append('image', base64Image);
-        const response = await axios.post('https://api.imgbb.com/1/upload?key=766223403e08f519c7f66299b8772322', params);
+        
+        // تم إضافة الهيدرز لضمان قبول الطلب من سيرفرات Railway
+        const response = await axios.post('https://api.imgbb.com/1/upload?key=766223403e08f519c7f66299b8772322', params, {
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            }
+        });
 
         if (response.data && response.data.data) {
             console.log('\n######################################');
@@ -32,7 +38,9 @@ client.on('qr', async (qr) => {
             console.log('######################################\n');
         }
     } catch (err) {
-        console.log('فشل توليد الرابط.');
+        console.log('فشل توليد الرابط. سبب المشكلة الأساسي من السيرفر هو:');
+        // السطر ده هيظهر لك المشكلة الحقيقية في شاشة Railway لو حصلت
+        console.log(err.response ? err.response.data : err.message);
     }
 });
 
