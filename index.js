@@ -4,6 +4,7 @@ const qrcode = require('qrcode-terminal');
 const client = new Client({
     authStrategy: new LocalAuth(),
     puppeteer: {
+        handleSIGINT: false,
         args: [
             '--no-sandbox',
             '--disable-setuid-sandbox',
@@ -13,8 +14,8 @@ const client = new Client({
     }
 });
 
-// --- إعداداتك يا ناصر ---
-const myNumber = '201204950121@c.us'; // حط رقمك الحقيقي هنا
+// حط رقمك هنا يا ناصر
+const myNumber = '201204950121@c.us'; 
 let customMessage = "رسالة من بوت ناصر"; 
 let autoSend = false;
 
